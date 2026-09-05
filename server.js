@@ -31,15 +31,24 @@ try {
 }
 app.use('/uploads', express.static(UPLOAD_DIR));
 
+// ---------- Vercel Blob (upload permanen di Vercel) ----------
+// Aktif otomatis jika env BLOB_READ_WRITE_TOKEN terisi; jika tidak, fallback ke folder uploads/ lokal.
+let blobApi = null;
+function getBlobApi() {
+  if (blobApi) return blobApi;
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return null;
+  try {
+    blobApi = require('@vercel/blob');
+    return blobApi;
+  } catch (err) {
+    console.warn('⚠️ @vercel/blob tidak tersedia, fallback ke uploads/ lokal:', err.message);
+    return null;
+  }
+}
+
 // ---------- Upload gambar ----------
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: UPLOAD_DIR,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-      cb(null, Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     // Terima berdasarkan MIME ataupun ekstensi (beberapa HP mengirim MIME generic)
@@ -51,13 +60,7 @@ const upload = multer({
 
 // ---------- Upload musik (MP3) ----------
 const uploadMusic = multer({
-  storage: multer.diskStorage({
-    destination: UPLOAD_DIR,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase() || '.mp3';
-      cb(null, 'music-' + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ok = /^audio\//.test(file.mimetype) || /\.(mp3|m4a|aac|ogg|wav|flac|opus)$/i.test(file.originalname);
@@ -103,12 +106,12 @@ function requireAdmin(req, res, next) {
 }
 
 // ---------- API: Settings ----------
-app.get('/api/settings', (req, res) => {
-  res.json(store.readSettings());
+app.get('/api/settings', async (req, res) => {
+  res.json(await store.readSettings());
 });
 
-app.put('/api/settings', requireAdmin, (req, res) => {
-  const current = store.readSettings();
+app.put('/api/settings', requireAdmin, async (req, res) => {
+  const current = await store.readSettings();
   const next = { ...current, ...req.body };
   // Hanya simpan field yang dikenal agar struktur tidak rusak
   const clean = {
@@ -124,16 +127,16 @@ app.put('/api/settings', requireAdmin, (req, res) => {
     share: { ...current.share, ...(next.share || {}) },
     bank: { ...current.bank, ...(next.bank || {}) },
   };
-  store.writeSettings(clean);
+  await store.writeSettings(clean);
   res.json(clean);
 });
 
 // ---------- API: RSVP ----------
-app.get('/api/rsvps', requireAdmin, (req, res) => {
-  res.json(store.readRsvps());
+app.get('/api/rsvps', requireAdmin, async (req, res) => {
+  res.json(await store.readRsvps());
 });
 
-app.post('/api/rsvp', (req, res) => {
+app.post('/api/rsvp', async (req, res) => {
   const { name, attendance, guests, message } = req.body || {};
   const guestCount = Math.max(1, parseInt(guests, 10) || 1);
   if (!name || typeof name !== 'string' || !name.trim()) {
@@ -142,7 +145,7 @@ app.post('/api/rsvp', (req, res) => {
   if (!['hadir', 'tidak-hadir'].includes(attendance)) {
     return res.status(400).json({ error: 'Status kehadiran tidak valid' });
   }
-  const rsvps = store.readRsvps();
+  const rsvps = await store.readRsvps();
   const entry = {
     id: crypto.randomUUID(),
     name: name.trim().slice(0, 100),
@@ -152,26 +155,26 @@ app.post('/api/rsvp', (req, res) => {
     createdAt: new Date().toISOString(),
   };
   rsvps.push(entry);
-  store.writeRsvps(rsvps);
+  await store.writeRsvps(rsvps);
   res.status(201).json(entry);
 });
 
-app.delete('/api/rsvps/:id', requireAdmin, (req, res) => {
-  const rsvps = store.readRsvps().filter((r) => r.id !== req.params.id);
-  store.writeRsvps(rsvps);
+app.delete('/api/rsvps/:id', requireAdmin, async (req, res) => {
+  const rsvps = (await store.readRsvps()).filter((r) => r.id !== req.params.id);
+  await store.writeRsvps(rsvps);
   res.json({ ok: true });
 });
 
 // ---------- API: Ucapan / Buku Tamu ----------
-app.get('/api/wishes', (req, res) => {
-  const all = store.readWishes();
+app.get('/api/wishes', async (req, res) => {
+  const all = await store.readWishes();
   if (isAdmin(req)) return res.json(all);
-  const settings = store.readSettings();
+  const settings = await store.readSettings();
   const approved = settings.wishes.autoApprove ? all : all.filter((w) => w.approved);
   res.json(approved.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
 });
 
-app.post('/api/wishes', (req, res) => {
+app.post('/api/wishes', async (req, res) => {
   const { name, message } = req.body || {};
   if (!name || typeof name !== 'string' || !name.trim()) {
     return res.status(400).json({ error: 'Nama wajib diisi' });
@@ -179,8 +182,8 @@ app.post('/api/wishes', (req, res) => {
   if (!message || typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: 'Ucapan wajib diisi' });
   }
-  const settings = store.readSettings();
-  const wishes = store.readWishes();
+  const settings = await store.readSettings();
+  const wishes = await store.readWishes();
   const entry = {
     id: crypto.randomUUID(),
     name: name.trim().slice(0, 100),
@@ -189,32 +192,48 @@ app.post('/api/wishes', (req, res) => {
     createdAt: new Date().toISOString(),
   };
   wishes.push(entry);
-  store.writeWishes(wishes);
+  await store.writeWishes(wishes);
   res.status(201).json(entry);
 });
 
-app.put('/api/wishes/:id/approve', requireAdmin, (req, res) => {
-  const wishes = store.readWishes();
+app.put('/api/wishes/:id/approve', requireAdmin, async (req, res) => {
+  const wishes = await store.readWishes();
   const wish = wishes.find((w) => w.id === req.params.id);
   if (!wish) return res.status(404).json({ error: 'Ucapan tidak ditemukan' });
   wish.approved = !wish.approved;
-  store.writeWishes(wishes);
+  await store.writeWishes(wishes);
   res.json(wish);
 });
 
-app.delete('/api/wishes/:id', requireAdmin, (req, res) => {
-  const wishes = store.readWishes().filter((w) => w.id !== req.params.id);
-  store.writeWishes(wishes);
+app.delete('/api/wishes/:id', requireAdmin, async (req, res) => {
+  const wishes = (await store.readWishes()).filter((w) => w.id !== req.params.id);
+  await store.writeWishes(wishes);
   res.json({ ok: true });
 });
 
 // ---------- API: Upload & Galeri ----------
 function handleUpload(mw) {
   return (req, res) => {
-    mw(req, res, (err) => {
+    mw(req, res, async (err) => {
       if (err) return res.status(400).json({ error: err.message });
       if (!req.file) return res.status(400).json({ error: 'Tidak ada file yang diunggah' });
-      res.status(201).json({ url: '/uploads/' + req.file.filename });
+      const file = req.file;
+      const ext = path.extname(file.originalname).toLowerCase() || (file.fieldname === 'music' ? '.mp3' : '.jpg');
+      const prefix = file.fieldname === 'music' ? 'music-' : '';
+      const filename = prefix + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext;
+      try {
+        const api = getBlobApi();
+        if (api) {
+          // Mode Vercel: simpan permanen di Vercel Blob
+          const { url } = await api.put(filename, file.buffer, { access: 'public', addRandomSuffix: false });
+          return res.status(201).json({ url });
+        }
+        // Mode lokal: simpan di folder uploads/
+        fs.writeFileSync(path.join(UPLOAD_DIR, filename), file.buffer);
+        res.status(201).json({ url: '/uploads/' + filename });
+      } catch (e) {
+        res.status(400).json({ error: 'Gagal menyimpan file: ' + e.message });
+      }
     });
   };
 }
@@ -223,7 +242,16 @@ app.post('/api/upload', requireAdmin, handleUpload(upload.single('image')));
 
 app.post('/api/upload/music', requireAdmin, handleUpload(uploadMusic.single('music')));
 
-app.delete('/api/uploads/:filename', requireAdmin, (req, res) => {
+app.delete('/api/uploads/:filename', requireAdmin, async (req, res) => {
+  const api = getBlobApi();
+  if (api) {
+    // Mode Vercel: hapus dari Blob (terima URL penuh ataupun nama file)
+    const raw = req.params.filename;
+    if (/^https?:\/\//.test(raw)) {
+      try { await api.del(raw); } catch (err) { console.warn('⚠️ Gagal hapus blob:', err.message); }
+    }
+    return res.json({ ok: true });
+  }
   const file = path.join(UPLOAD_DIR, path.basename(req.params.filename));
   if (fs.existsSync(file)) fs.unlinkSync(file);
   res.json({ ok: true });
@@ -283,9 +311,9 @@ app.get('/api/admin/me', (req, res) => {
 });
 
 // ---------- Ringkasan untuk dashboard ----------
-app.get('/api/summary', requireAdmin, (req, res) => {
-  const rsvps = store.readRsvps();
-  const wishes = store.readWishes();
+app.get('/api/summary', requireAdmin, async (req, res) => {
+  const rsvps = await store.readRsvps();
+  const wishes = await store.readWishes();
   res.json({
     totalRsvp: rsvps.length,
     hadir: rsvps.filter((r) => r.attendance === 'hadir').length,
@@ -298,13 +326,7 @@ app.get('/api/summary', requireAdmin, (req, res) => {
 
 // ---------- Import Data Tamu dari Excel ----------
 const uploadExcel = multer({
-  storage: multer.diskStorage({
-    destination: UPLOAD_DIR,
-    filename: (req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase() || '.xlsx';
-      cb(null, 'guests-' + Date.now() + '-' + crypto.randomBytes(4).toString('hex') + ext);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
@@ -312,28 +334,25 @@ app.post('/api/import-guests', requireAdmin, (req, res) => {
   uploadExcel.single('excel')(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });
     if (!req.file) return res.status(400).json({ error: 'Tidak ada file yang diunggah' });
-    
+
     if (!XLSX) {
       return res.status(500).json({ error: 'Modul xlsx tidak tersedia. Install dengan: npm install xlsx' });
     }
-    
+
     try {
-      const workbook = XLSX.readFile(req.file.path);
+      const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
       const data = XLSX.utils.sheet_to_json(worksheet);
-      
-      // Hapus file setelah dibaca
-      fs.unlinkSync(req.file.path);
-      
+
       // Parse data tamu
       const guests = [];
       for (const row of data) {
         // Cari kolom nama (case insensitive)
         const nama = row.nama || row.Nama || row.name || row.Name || row.fullname || row.FullName || row.full_name || '';
         // Cari kolom nomor HP (case insensitive)
-        const noHp = row.noHp || row.no_hp || row.noHp || row.NoHp || row.phone || row.Phone || row.nomor || row.Nomor || row.hp || row.HP || '';
-        
+        const noHp = row.noHp || row.no_hp || row.NoHp || row.phone || row.Phone || row.nomor || row.Nomor || row.hp || row.HP || '';
+
         if (nama && noHp) {
           guests.push({
             nama: String(nama).trim().slice(0, 100),
@@ -341,36 +360,34 @@ app.post('/api/import-guests', requireAdmin, (req, res) => {
           });
         }
       }
-      
+
       res.json({ guests, count: guests.length });
     } catch (err) {
-      // Hapus file jika gagal
-      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       res.status(400).json({ error: 'Gagal membaca file Excel: ' + err.message });
     }
   });
 });
 
 // ---------- Blast Undangan ke Tamu ----------
-app.post('/api/blast-invitations', requireAdmin, (req, res) => {
+app.post('/api/blast-invitations', requireAdmin, async (req, res) => {
   const { baseUrl, guests } = req.body || {};
-  
+
   if (!baseUrl || !guests || !Array.isArray(guests)) {
     return res.status(400).json({ error: 'baseUrl dan guests wajib diisi' });
   }
-  
+
   const cleanBaseUrl = baseUrl.replace(/\/+$/, ''); // Hilangkan trailing slash
-  
+
   let sent = 0;
   let failed = 0;
   const results = [];
-  
+
   for (const guest of guests) {
     if (guest.nama && guest.noHp) {
       const url = cleanBaseUrl + (cleanBaseUrl.includes('?') ? '&' : '?') + 'to=' + encodeURIComponent(guest.nama);
-      
+
       // Simpan log blast
-      const blastLog = store.readBlastLogs();
+      const blastLog = await store.readBlastLogs();
       blastLog.push({
         id: crypto.randomUUID(),
         nama: guest.nama,
@@ -379,33 +396,33 @@ app.post('/api/blast-invitations', requireAdmin, (req, res) => {
         sentAt: new Date().toISOString(),
         status: 'sent'
       });
-      store.writeBlastLogs(blastLog);
-      
+      await store.writeBlastLogs(blastLog);
+
       sent++;
       results.push({ nama: guest.nama, noHp: guest.noHp, url, status: 'sent' });
     } else {
       failed++;
     }
   }
-  
+
   // Kembalikan response yang lengkap
-  res.json({ 
-    sent, 
-    failed, 
+  res.json({
+    sent,
+    failed,
     total: guests.length,
     results: results,
-    message: `Berhasil mengirim undangan ke ${sent} tamu. ${failed > 0 ? failed + ' tamu gagal (data tidak lengkap).' : 'Semua berhasil!'}` 
+    message: `Berhasil mengirim undangan ke ${sent} tamu. ${failed > 0 ? failed + ' tamu gagal (data tidak lengkap).' : 'Semua berhasil!'}`
   });
 });
 
 // ---------- Log Blast ----------
-app.get('/api/blast-logs', requireAdmin, (req, res) => {
-  const logs = store.readBlastLogs();
+app.get('/api/blast-logs', requireAdmin, async (req, res) => {
+  const logs = await store.readBlastLogs();
   res.json(logs.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt)));
 });
 
-app.delete('/api/blast-logs', requireAdmin, (req, res) => {
-  store.writeBlastLogs([]);
+app.delete('/api/blast-logs', requireAdmin, async (req, res) => {
+  await store.writeBlastLogs([]);
   res.json({ ok: true });
 });
 
