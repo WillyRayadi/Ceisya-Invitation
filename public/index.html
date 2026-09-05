@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#b76e79" />
+  <title>Undangan Pernikahan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Dancing+Script:wght@400;500;600;700&family=Great+Vibes&family=Jost:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <!-- ================= COVER ================= -->
+  <div id="cover" class="cover">
+    <div class="cover-bg" id="coverBg"></div>
+    <div class="cover-content">
+      <p class="cover-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+      <p class="cover-title" id="coverTitle">The Wedding of</p>
+      <h1 class="cover-names">
+        <span id="brideName">Nayla</span>
+        <span class="amp">&amp;</span>
+        <span id="groomName">Raka</span>
+      </h1>
+      <p class="cover-date" id="coverDate">12 • 12 • 2026</p>
+      <p class="cover-to" id="coverTo"></p>
+      <button class="btn btn-open" id="btnOpen">Buka Undangan</button>
+    </div>
+  </div>
+
+  <!-- ================= KONTEN UTAMA ================= -->
+  <main id="content" class="content hidden">
+
+    <!-- HERO -->
+    <section id="hero" class="section hero">
+      <div class="hero-inner">
+        <p class="hero-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+        <p class="script hero-sub" id="heroSub">The Wedding of</p>
+        <h2 class="hero-names">
+          <span id="heroBride">Raka Pratama</span>
+          <span class="amp">❦</span>
+          <span id="heroGroom">Nayla Putri</span>
+        </h2>
+        <p class="hero-date" id="heroDate">Sabtu, 12 Desember 2026</p>
+        <div class="hero-quote" id="heroQuote"></div>
+      </div>
+    </section>
+
+    <!-- COUNTDOWN -->
+    <section id="countdown" class="section countdown-section">
+      <h3 class="section-title script" id="countdownTitle">Menuju Hari Bahagia</h3>
+      <div class="countdown" id="countdown">
+        <div class="cd-box"><span class="cd-num" id="cdDays">00</span><span class="cd-label">Hari</span></div>
+        <div class="cd-box"><span class="cd-num" id="cdHours">00</span><span class="cd-label">Jam</span></div>
+        <div class="cd-box"><span class="cd-num" id="cdMinutes">00</span><span class="cd-label">Menit</span></div>
+        <div class="cd-box"><span class="cd-num" id="cdSeconds">00</span><span class="cd-label">Detik</span></div>
+      </div>
+    </section>
+
+    <!-- PASANGAN -->
+    <section id="couple" class="section couple-section">
+      <h3 class="section-title script">Mempelai</h3>
+      <p class="section-sub">Assalamualaikum Wr. Wb.<br /><span id="invitationText"></span></p>
+
+      <div class="couple-grid">
+        <div class="person-card">
+          <div class="person-photo" id="bridePhoto"><span class="photo-placeholder">N</span></div>
+          <h4 class="person-name" id="brideFullName">Nayla Putri, S.E.</h4>
+          <p class="person-parents" id="brideParents"></p>
+          <a class="person-ig" id="brideIg" href="#" target="_blank" rel="noopener">@naylaputri</a>
+        </div>
+
+        <div class="couple-divider">
+          <span class="amp big">❦</span>
+          <p class="couple-date">13.09.2026</p>
+        </div>
+        
+        <div class="person-card">
+          <div class="person-photo" id="groomPhoto"><span class="photo-placeholder">R</span></div>
+          <h4 class="person-name" id="groomFullName">Raka Pratama, S.T.</h4>
+          <p class="person-parents" id="groomParents"></p>
+          <a class="person-ig" id="groomIg" href="#" target="_blank" rel="noopener">@rakapratama</a>
+        </div>
+        
+      </div>
+
+      <blockquote class="quote">
+        <p id="coupleQuote"></p>
+        <cite id="coupleQuoteSource"></cite>
+      </blockquote>
+    </section>
+
+    <!-- ACARA -->
+    <section id="events" class="section events-section">
+      <h3 class="section-title script">Rangkaian Acara</h3>
+      <div class="events-grid">
+        <div class="event-card" id="eventAkad">
+          <div class="event-icon">🕌</div>
+          <h4 class="event-title">Akad Nikah</h4>
+          <p class="event-date"></p>
+          <p class="event-time"></p>
+          <p class="event-location"></p>
+          <p class="event-address"></p>
+          <a class="btn btn-outline btn-maps" target="_blank" rel="noopener">Lihat Lokasi</a>
+        </div>
+        <div class="event-card" id="eventResepsi">
+          <div class="event-icon">💐</div>
+          <h4 class="event-title">Resepsi</h4>
+          <p class="event-date"></p>
+          <p class="event-time"></p>
+          <p class="event-location"></p>
+          <p class="event-address"></p>
+          <a class="btn btn-outline btn-maps" target="_blank" rel="noopener">Lihat Lokasi</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALERI -->
+    <section id="gallery" class="section gallery-section hidden">
+      <h3 class="section-title script">Galeri</h3>
+      <div class="gallery-scroll" id="galleryScroll"></div>
+    </section>
+
+    <!-- RSVP -->
+    <section id="rsvp" class="section rsvp-section">
+      <h3 class="section-title script">Konfirmasi Kehadiran</h3>
+      <form id="rsvpForm" class="form-card" autocomplete="off">
+        <input type="text" id="rsvpName" name="name" placeholder="Nama Lengkap" required />
+        <div class="radio-group" id="attendanceGroup">
+          <label class="radio-option">
+            <input type="radio" name="attendance" value="hadir" checked />
+            <span>Hadir</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="attendance" value="tidak-hadir" />
+            <span>Tidak Hadir</span>
+          </label>
+        </div>
+        <input type="number" id="rsvpGuests" name="guests" min="1" max="10" placeholder="Jumlah Tamu (mis. 2)" />
+        <textarea id="rsvpMessage" name="message" rows="3" placeholder="Ucapan & doa (opsional)"></textarea>
+        <button type="submit" class="btn btn-primary">Kirim Konfirmasi</button>
+        <p class="form-msg" id="rsvpMsg"></p>
+      </form>
+    </section>
+
+    <!-- UCAPAN -->
+    <section id="wishes" class="section wishes-section">
+      <h3 class="section-title script">Ucapan &amp; Doa</h3>
+      <form id="wishForm" class="form-card" autocomplete="off">
+        <input type="text" id="wishName" placeholder="Nama Anda" required />
+        <textarea id="wishMessage" rows="3" placeholder="Tuliskan ucapan & doa terbaik..." required></textarea>
+        <button type="submit" class="btn btn-primary">Kirim Ucapan</button>
+        <p class="form-msg" id="wishMsg"></p>
+      </form>
+      <div class="wish-list" id="wishList"></div>
+    </section>
+
+    <!-- KIRIM HADIAH / BANK -->
+    <section id="gift" class="section gift-section hidden">
+      <h3 class="section-title script" id="giftTitle">Kirim Hadiah</h3>
+      <p class="section-sub" id="giftNote"></p>
+      <div class="gift-list" id="giftList"></div>
+    </section>
+
+    <!-- FOOTER -->
+    <section class="section footer-section">
+      <p class="footer-quote" id="footerQuote"></p>
+      <p class="footer-thanks" id="footerThanks"></p>
+      <h3 class="footer-names script" id="footerNames">Raka &amp; Nayla</h3>
+      <p class="footer-share-title">Bagikan Undangan</p>
+      <div class="share-box">
+        <img id="shareQr" alt="QR Code undangan" class="share-qr" />
+        <p class="share-url" id="shareUrl"></p>
+        <button class="btn btn-outline btn-share" id="btnShare">Salin Link</button>
+      </div>
+      <p class="footer-copy">Dibuat dengan ❤️ — Undangan Digital</p>
+    </section>
+  </main>
+
+  <!-- ================= ELEMEN MENGAMBANG ================= -->
+  <button class="music-btn hidden" id="musicBtn" title="Putar / Jeda musik">♪</button>
+  <audio id="bgMusic" loop></audio>
+
+  <div id="navDots" class="nav-dots hidden"></div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

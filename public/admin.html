@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Admin — Undangan Digital</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/admin.css" />
+</head>
+<body>
+
+  <!-- ================= LOGIN ================= -->
+  <div id="loginScreen" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <h1 class="login-title">Dashboard <span>Undangan</span></h1>
+      <p class="login-sub">Masuk untuk mengelola undangan digital</p>
+      <input type="text" id="loginUsername" placeholder="Username" required autocomplete="username" />
+      <input type="password" id="loginPassword" placeholder="Password" required autocomplete="current-password" />
+      <button type="submit" class="btn btn-primary">Masuk</button>
+      <p class="form-msg" id="loginMsg"></p>
+    </form>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="dashboard" class="dashboard hidden">
+    <aside class="sidebar">
+      <div class="sidebar-brand">💍 <span>Undangan Digital</span></div>
+      <nav class="sidebar-nav" id="sidebarNav">
+        <button class="nav-item active" data-tab="summary">📊 Ringkasan</button>
+        <button class="nav-item" data-tab="settings">⚙️ Pengaturan</button>
+        <button class="nav-item" data-tab="rsvp">📋 RSVP</button>
+        <button class="nav-item" data-tab="wishes">💌 Ucapan</button>
+        <button class="nav-item" data-tab="gallery">🖼️ Galeri</button>
+        <button class="nav-item" data-tab="qr">🔗 QR Undangan</button>
+      </nav>
+      <div class="sidebar-footer">
+        <a class="view-link" href="/" target="_blank" rel="noopener">👁️ Lihat Undangan</a>
+        <button class="logout-btn" id="btnLogout">Keluar</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="warn-banner hidden" id="restartWarn">
+        ⚠️ <b>Server masih menjalankan versi lama.</b> Restart server (hentikan lalu jalankan ulang <code>npm start</code>) agar tema, upload musik MP3, dan fitur terbaru berfungsi.
+      </div>
+      <!-- RINGKASAN -->
+      <section class="tab-panel active" id="tab-summary">
+        <h2 class="panel-title">Ringkasan</h2>
+        <div class="stat-grid" id="statGrid">
+          <div class="stat-card"><span class="stat-num" id="stTotalRsvp">0</span><span class="stat-label">Total Konfirmasi</span></div>
+          <div class="stat-card"><span class="stat-num" id="stHadir">0</span><span class="stat-label">Hadir</span></div>
+          <div class="stat-card"><span class="stat-num" id="stTotalTamu">0</span><span class="stat-label">Total Tamu Hadir</span></div>
+          <div class="stat-card"><span class="stat-num" id="stTidak">0</span><span class="stat-label">Tidak Hadir</span></div>
+          <div class="stat-card"><span class="stat-num" id="stPending">0</span><span class="stat-label">Ucapan Menunggu</span></div>
+        </div>
+        <div class="panel-note">Tip: perbarui <b>Pengaturan</b> terlebih dahulu, lalu bagikan link undangan lewat tab <b>QR Undangan</b>.</div>
+      </section>
+
+      <!-- PENGATURAN -->
+      <section class="tab-panel" id="tab-settings">
+        <h2 class="panel-title">Pengaturan Undangan</h2>
+        <form id="settingsForm" class="settings-form">
+          <fieldset>
+            <legend>Cover</legend>
+            <label>Judul <input type="text" name="cover.title" /></label>
+            <label>Salam Pembuka <input type="text" name="cover.opening" /></label>
+            <label>Kalimat Undangan <textarea name="cover.invitation" rows="2"></textarea></label>
+            <div class="upload-field">
+              <span class="upload-label">Gambar Latar Cover</span>
+              <input type="hidden" name="cover.background" />
+              <div class="upload-preview upload-preview-wide">
+                <img id="coverBgPreview" alt="Gambar latar cover" class="hidden" />
+                <span class="upload-placeholder" id="coverBgPh">Belum ada gambar</span>
+              </div>
+              <div class="upload-actions">
+                <input type="file" id="coverBgInput" accept="image/*" hidden />
+                <button type="button" class="btn btn-small" data-pick="coverBgInput">📷 Pilih Gambar</button>
+                <button type="button" class="btn btn-small btn-danger hidden" data-clear-photo="cover.background">Hapus Gambar</button>
+              </div>
+              <p class="upload-hint">Gambar tampil samar di belakang cover. Disarankan foto resolusi tinggi (landscape).</p>
+            </div>
+            <label class="checkbox"><input type="checkbox" name="cover.showDate" /> Tampilkan tanggal di cover</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Mempelai Pria</legend>
+            <label>Nama Panggilan <input type="text" name="couple.groom.name" /></label>
+            <label>Nama Lengkap <input type="text" name="couple.groom.fullName" /></label>
+            <label>Orang Tua <textarea name="couple.groom.parents" rows="2"></textarea></label>
+            <label>Instagram <input type="text" name="couple.groom.instagram" placeholder="tanpa @" /></label>
+            <div class="upload-field">
+              <span class="upload-label">Foto Mempelai Pria</span>
+              <input type="hidden" name="couple.groom.photo" />
+              <div class="upload-preview">
+                <img id="groomPhotoPreview" alt="Foto mempelai pria" class="hidden" />
+                <span class="upload-placeholder" id="groomPhotoPh">Belum ada foto</span>
+              </div>
+              <div class="upload-actions">
+                <input type="file" id="groomPhotoInput" accept="image/*" hidden />
+                <button type="button" class="btn btn-small" data-pick="groomPhotoInput">📷 Pilih Foto</button>
+                <button type="button" class="btn btn-small btn-danger hidden" data-clear-photo="couple.groom.photo">Hapus Foto</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Mempelai Wanita</legend>
+            <label>Nama Panggilan <input type="text" name="couple.bride.name" /></label>
+            <label>Nama Lengkap <input type="text" name="couple.bride.fullName" /></label>
+            <label>Orang Tua <textarea name="couple.bride.parents" rows="2"></textarea></label>
+            <label>Instagram <input type="text" name="couple.bride.instagram" placeholder="tanpa @" /></label>
+            <div class="upload-field">
+              <span class="upload-label">Foto Mempelai Wanita</span>
+              <input type="hidden" name="couple.bride.photo" />
+              <div class="upload-preview">
+                <img id="bridePhotoPreview" alt="Foto mempelai wanita" class="hidden" />
+                <span class="upload-placeholder" id="bridePhotoPh">Belum ada foto</span>
+              </div>
+              <div class="upload-actions">
+                <input type="file" id="bridePhotoInput" accept="image/*" hidden />
+                <button type="button" class="btn btn-small" data-pick="bridePhotoInput">📷 Pilih Foto</button>
+                <button type="button" class="btn btn-small btn-danger hidden" data-clear-photo="couple.bride.photo">Hapus Foto</button>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Ayat / Kutipan</legend>
+            <label>Kutipan <textarea name="couple.quote" rows="2"></textarea></label>
+            <label>Sumber Kutipan <input type="text" name="couple.quoteSource" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Akad Nikah</legend>
+            <label>Judul <input type="text" name="events.akad.title" /></label>
+            <label>Tanggal <input type="date" name="events.akad.date" /></label>
+            <label>Waktu <input type="text" name="events.akad.time" placeholder="08.00 - 10.00 WIB" /></label>
+            <label>Lokasi <input type="text" name="events.akad.location" /></label>
+            <label>Alamat <textarea name="events.akad.address" rows="2"></textarea></label>
+            <label>Link Google Maps <input type="text" name="events.akad.mapsUrl" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Resepsi</legend>
+            <label>Judul <input type="text" name="events.resepsi.title" /></label>
+            <label>Tanggal <input type="date" name="events.resepsi.date" /></label>
+            <label>Waktu <input type="text" name="events.resepsi.time" placeholder="11.00 - 14.00 WIB" /></label>
+            <label>Lokasi <input type="text" name="events.resepsi.location" /></label>
+            <label>Alamat <textarea name="events.resepsi.address" rows="2"></textarea></label>
+            <label>Link Google Maps <input type="text" name="events.resepsi.mapsUrl" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Hitung Mundur & Musik</legend>
+            <label class="checkbox"><input type="checkbox" name="countdown.active" /> Aktifkan hitung mundur</label>
+            <label>Judul Hitung Mundur <input type="text" name="countdown.title" /></label>
+            <div class="upload-field">
+              <span class="upload-label">Musik Latar (MP3)</span>
+              <input type="hidden" name="music.url" />
+              <audio id="musicPreview" controls class="hidden"></audio>
+              <div class="upload-actions">
+                <input type="file" id="musicInput" accept="audio/*,.mp3" hidden />
+                <button type="button" class="btn btn-small" id="btnChooseMusic">🎵 Pilih File MP3</button>
+                <button type="button" class="btn btn-small btn-danger hidden" id="btnRemoveMusic">Hapus Musik</button>
+              </div>
+              <p class="upload-hint">Unggah file MP3 dari perangkat Anda (maks 20 MB). Musik dari URL tidak didukung karena sering gagal diputar.</p>
+            </div>
+            <label class="checkbox"><input type="checkbox" name="music.autoplay" /> Putar otomatis setelah undangan dibuka</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tema Undangan</legend>
+            <p class="upload-hint">Pilih tema tampilan undangan. Perubahan langsung terlihat di halaman undangan.</p>
+            <input type="hidden" name="theme" id="themeInput" value="midnight" />
+            <div class="theme-picker" id="themePicker"></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Bagikan Undangan ke Tamu</legend>
+            <label>URL Undangan (basis) <input type="text" name="share.baseUrl" placeholder="https://nama-domain-anda.com/" /></label>
+            <p class="upload-hint">Kosongkan untuk memakai alamat otomatis dari server ini.</p>
+            <label>Nama Tamu <input type="text" id="shareGuestName" placeholder="mis. Bapak Ahmad & Ibu Siti" /></label>
+            <p class="upload-hint">Nama tamu otomatis ditambahkan di akhir URL, sehingga saat dibuka undangan menyapa tamu tersebut.</p>
+            <div class="share-gen">
+              <p class="share-gen-label">Link personal untuk tamu:</p>
+              <div class="share-gen-row">
+                <input type="text" id="shareGenerated" readonly />
+                <button type="button" class="btn btn-small" id="btnCopyShare">Salin</button>
+              </div>
+              <div class="share-gen-qr-wrap"><img id="shareGenQr" alt="QR link personal" class="share-gen-qr hidden" /></div>
+              <p class="form-msg" id="shareMsg"></p>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Import Data Tamu (Excel)</legend>
+            <p class="upload-hint">Upload file Excel (.xlsx) yang berisi data tamu. Kolom wajib: <b>nama</b> dan <b>noHp</b> (nomor HP tanpa 0 di awal).</p>
+            <div class="upload-field">
+              <span class="upload-label">File Excel Tamu</span>
+              <input type="file" id="guestExcelInput" accept=".xlsx" hidden />
+              <div class="upload-preview upload-preview-wide">
+                <span class="upload-placeholder" id="guestExcelPh">Belum ada file diupload</span>
+              </div>
+              <div class="upload-actions">
+                <button type="button" class="btn btn-small" id="btnChooseGuestExcel">📁 Pilih File Excel</button>
+              </div>
+              <p class="form-msg" id="guestExcelMsg"></p>
+            </div>
+            <div class="guest-list-summary hidden" id="guestListSummary">
+              <p class="upload-hint">Data tamu yang diimport: <span id="guestCount">0</span> orang</p>
+              <div class="guest-table mini" id="guestTableMini"></div>
+              <div class="guest-actions">
+                <button type="button" class="btn btn-small hidden" id="btnClearGuests">🗑️ Hapus Data Tamu</button>
+                <button type="button" class="btn btn-primary" id="btnBlastInvitations">📤 Blast Undangan ke Semua Tamu</button>
+              </div>
+            </div>
+            <p class="form-msg" id="blastMsg"></p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Bank / Rekening — Kirim Hadiah</legend>
+            <label class="checkbox"><input type="checkbox" name="bank.active" /> Tampilkan info rekening di undangan</label>
+            <label>Judul <input type="text" name="bank.title" placeholder="Kirim Hadiah / Kado Digital" /></label>
+            <label>Catatan <input type="text" name="bank.note" placeholder="Bagi yang tidak bisa hadir, dapat mengirimkan kado melalui transfer..." /></label>
+            <input type="hidden" name="bank.accounts" id="bankAccountsInput" />
+            <div class="bank-list" id="bankList"></div>
+            <button type="button" class="btn btn-small" id="btnAddBank">+ Tambah Rekening</button>
+            <p class="upload-hint">Unggah logo bank untuk menampilkannya di undangan. Logo akan disimpan dalam folder upload.</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>Ucapan Tamu</legend>
+            <label class="checkbox"><input type="checkbox" name="wishes.autoApprove" /> Langsung tampilkan ucapan tanpa persetujuan</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Footer</legend>
+            <label>Kutipan Penutup <textarea name="footer.quote" rows="2"></textarea></label>
+            <label>Ucapan Terima Kasih <input type="text" name="footer.thankYou" /></label>
+            <label>Nama Penutup <input type="text" name="footer.names" /></label>
+          </fieldset>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Simpan Pengaturan</button>
+            <p class="form-msg" id="settingsMsg"></p>
+          </div>
+        </form>
+      </section>
+
+      <!-- RSVP -->
+      <section class="tab-panel" id="tab-rsvp">
+        <h2 class="panel-title">Daftar Konfirmasi Kehadiran</h2>
+        <div class="toolbar">
+          <button class="chip active" data-filter="all">Semua</button>
+          <button class="chip" data-filter="hadir">Hadir</button>
+          <button class="chip" data-filter="tidak-hadir">Tidak Hadir</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Nama</th><th>Status</th><th>Jumlah Tamu</th><th>Ucapan</th><th>Tanggal</th><th></th></tr>
+            </thead>
+            <tbody id="rsvpBody"></tbody>
+          </table>
+          <p class="empty-note hidden" id="rsvpEmpty">Belum ada konfirmasi.</p>
+        </div>
+      </section>
+
+      <!-- UCAPAN -->
+      <section class="tab-panel" id="tab-wishes">
+        <h2 class="panel-title">Ucapan &amp; Doa Tamu</h2>
+        <div class="wish-admin-list" id="wishAdminList"></div>
+        <p class="empty-note hidden" id="wishEmpty">Belum ada ucapan.</p>
+      </section>
+
+      <!-- GALERI -->
+      <section class="tab-panel" id="tab-gallery">
+        <h2 class="panel-title">Galeri Foto</h2>
+        <div class="upload-box">
+          <input type="file" id="galleryInput" accept="image/*" multiple hidden />
+          <button class="btn btn-primary" id="btnChooseGallery">📷 Pilih Foto</button>
+          <p class="form-msg" id="galleryMsg"></p>
+        </div>
+        <div class="gallery-admin" id="galleryAdminGrid"></div>
+        <p class="empty-note hidden" id="galleryEmpty">Belum ada foto galeri. Unggah foto untuk ditampilkan di undangan.</p>
+      </section>
+
+      <!-- QR -->
+      <section class="tab-panel" id="tab-qr">
+        <h2 class="panel-title">QR Code Undangan</h2>
+        <p class="panel-note">Scan QR ini untuk membuka undangan, atau unduh lalu cetak untuk tamu.<br />Untuk link personal berisi nama tamu (mis. <code>?to=Nama+Tamu</code>), buat lewat <b>Pengaturan → Bagikan Undangan ke Tamu</b>.</p>
+        <div class="qr-box">
+          <input type="text" id="qrText" class="qr-input" placeholder="https://link-undangan-anda" />
+          <div class="qr-preview"><img id="qrPreview" alt="QR Code" /></div>
+          <button class="btn btn-primary" id="btnDownloadQr">⬇️ Unduh QR (PNG)</button>
+          <p class="form-msg" id="qrMsg"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>

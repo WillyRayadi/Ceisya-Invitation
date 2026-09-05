@@ -1,0 +1,75 @@
+{
+  "couple": {
+    "groom": {
+      "name": "Alam",
+      "fullName": "Nuralamsyah",
+      "parents": "Putra pertama dari Bapak Supriyadi & Ibu Kusniati",
+      "instagram": "al.amsyah3956",
+      "photo": "/uploads/1788591654159-35fdb837.jpeg"
+    },
+    "bride": {
+      "name": "Nury",
+      "fullName": "Nury Marliani",
+      "parents": "Putri pertama dari Bapak Bajuri & Ibu Nunung",
+      "instagram": "nuri_mrln",
+      "photo": "/uploads/1788591679418-d5f47270.jpeg"
+    },
+    "quote": "Dan di antara tanda-tanda kebesaran-Nya ialah Dia menciptakan untukmu pasangan hidup dari jenismu sendiri, supaya kamu mendapatkan ketenangan hati, dan dijadikan-Nya kasih sayang di antara kamu.",
+    "quoteSource": "QS. Ar-Rum: 21"
+  },
+  "cover": {
+    "title": "The Wedding of",
+    "opening": "Assalamualaikum Wr. Wb.",
+    "invitation": "Tanpa mengurangi rasa hormat, kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami:",
+    "background": "/uploads/1788592254913-8e7f6224.jpeg",
+    "showDate": true
+  },
+  "events": {
+    "akad": {
+      "title": "Akad Nikah",
+      "date": "2026-09-13",
+      "time": "08.00 - Selesai",
+      "location": "Dusun Manis",
+      "address": "Dusun Manis RT 05 RW 02 Desa Pawahan Kec. Pasawahan Kab. Kuningan Jawa Barat",
+      "mapsUrl": "https://maps.app.goo.gl/HEnFmgbdFJWiYmkY9"
+    },
+    "resepsi": {
+      "title": "Resepsi",
+      "date": "2026-09-13",
+      "time": "10.00 - Selesai",
+      "location": "Dusun Manis",
+      "address": "Dusun Manis RT 05 RW 02 Desa Pawahan Kec. Pasawahan Kab. Kuningan Jawa Barat",
+      "mapsUrl": "https://maps.app.goo.gl/HEnFmgbdFJWiYmkY9"
+    }
+  },
+  "countdown": {
+    "active": true,
+    "title": "Menuju Hari Bahagia"
+  },
+  "music": {
+    "url": "/uploads/music-1788588777183-64811318.mp3",
+    "autoplay": true
+  },
+  "wishes": {
+    "autoApprove": true
+  },
+  "gallery": [
+    "/uploads/1788590005831-7e349b68.jpeg",
+    "/uploads/1788590005848-6a655faf.jpeg"
+  ],
+  "footer": {
+    "quote": "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir dan memberikan doa restu.",
+    "thankYou": "Atas kehadiran dan doa restunya, kami ucapkan terima kasih.",
+    "names": "Nury & Alam"
+  },
+  "theme": "midnight",
+  "share": {
+    "baseUrl": ""
+  },
+  "bank": {
+    "active": true,
+    "title": "Kirim Hadiah / Kado Digital",
+    "note": "",
+    "accounts": "[{\"bank\":\"Mandiri\",\"number\":\"1340017628354\",\"holder\":\"Nury Marliani\",\"logo\":\"/uploads/1788592593745-0882dd87.png\"}]"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "undangan-digital",
+  "version": "1.0.0",
+  "description": "Website undangan pernikahan digital lengkap dengan dashboard admin - terinspirasi Our Wedding Link",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "undangan",
+    "undangan-digital",
+    "wedding",
+    "invitation",
+    "pernikahan"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "qrcode": "^1.5.3",
+    "xlsx": "^0.18.5"
+  }
+}
