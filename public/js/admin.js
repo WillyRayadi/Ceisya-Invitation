@@ -227,6 +227,7 @@
     try {
       const v = await api('/api/version');
       if (v.version !== SERVER_VERSION) $('#restartWarn').classList.remove('hidden');
+      if (v.persistent === false) $('#storageWarn').classList.remove('hidden');
     } catch (err) {
       $('#restartWarn').classList.remove('hidden');
     }

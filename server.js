@@ -24,7 +24,11 @@ app.get('/admin', (req, res) => {
 });
 
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+try {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+} catch (err) {
+  console.warn('⚠️ Tidak dapat membuat folder uploads:', err.message);
+}
 app.use('/uploads', express.static(UPLOAD_DIR));
 
 // ---------- Upload gambar ----------
@@ -243,9 +247,10 @@ app.get('/api/qrcode', async (req, res) => {
 });
 
 // ---------- API: Versi server ----------
-// Dipakai admin untuk mendeteksi apakah server perlu di-restart agar fitur baru aktif.
+// Dipakai admin untuk mendeteksi apakah server perlu di-restart agar fitur baru aktif,
+// dan apakah penyimpanan bersifat permanen (di Vercel serverless filesystem read-only).
 app.get('/api/version', (req, res) => {
-  res.json({ version: 2 });
+  res.json({ version: 2, persistent: store.isPersistent() });
 });
 
 // ---------- API: Admin auth ----------
@@ -405,8 +410,14 @@ app.delete('/api/blast-logs', requireAdmin, (req, res) => {
 });
 
 // ---------- Start ----------
-app.listen(PORT, () => {
-  console.log(`✅ Undangan digital berjalan di http://localhost:${PORT}`);
-  console.log(`📋 Admin dashboard: http://localhost:${PORT}/admin  (password default: admin123)`);
-  console.log('   Ganti password dengan env ADMIN_PASSWORD.');
-});
+// Jalankan server langsung ketika file dijalankan sebagai script utama (node server.js / npm start).
+// Saat di-require oleh Vercel (@vercel/node), platform yang menjalankan server dan app diekspor di bawah.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`✅ Undangan digital berjalan di http://localhost:${PORT}`);
+    console.log(`📋 Admin dashboard: http://localhost:${PORT}/admin  (password default: admin123)`);
+    console.log('   Ganti password dengan env ADMIN_PASSWORD.');
+  });
+}
+
+module.exports = app;
