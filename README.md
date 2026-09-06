@@ -54,7 +54,7 @@ PORT=8080 ADMIN_PASSWORD=passwordku npm start
 
 ```
 server.js            # API & server Express
-lib/store.js         # Penyimpanan data (file JSON di folder data/)
+lib/store.js         # Penyimpanan: Redis (permanen) / file JSON (lokal)
 public/
   index.html         # Halaman undangan
   admin.html         # Dashboard admin
@@ -62,12 +62,44 @@ public/
   css/admin.css      # Gaya dashboard admin
   js/main.js         # Logika halaman undangan
   js/admin.js        # Logika dashboard admin
-data/                # Data otomatis dibuat saat pertama dijalankan
+data/                # Seed awal / fallback mode lokal
   settings.json      # Konten undangan
   rsvps.json         # Konfirmasi kehadiran
   wishes.json        # Ucapan tamu
-uploads/             # Foto galeri & foto mempelai
+uploads/             # Foto galeri & foto mempelai (lokal; di Vercel pakai Vercel Blob)
 ```
+
+## Penyimpanan Permanen (Penting untuk Vercel)
+
+Di Vercel (serverless), filesystem **read-only** — data yang ditulis ke file akan hilang. Karena itu aplikasi ini memakai **Redis (Upstash)** sebagai database permanen. Semua data tersimpan aman di sana:
+
+- Perubahan konten dari dashboard admin (mempelai, acara, galeri, tema, dll.)
+- Ucapan & doa tamu (langsung tampil di halaman undangan)
+- Konfirmasi kehadiran / RSVP (langsung masuk ke dashboard admin)
+- Sesi login admin (tidak logout saat server berganti instance)
+
+### Setup (gratis, ± 5 menit)
+
+1. Buat akun di [upstash.com](https://upstash.com) → **Create Database** → pilih region terdekat (mis. Singapore) → **Regional** (bukan Global, agar lebih murah/cepat).
+2. Setelah database jadi, buka tab **REST API** lalu salin `UPSTASH_REDIS_REST_URL` dan `UPSTASH_REDIS_REST_TOKEN`.
+3. Masukkan keduanya sebagai Environment Variables di Vercel:
+
+   ```
+   Project Settings → Environment Variables → tambahkan:
+   UPSTASH_REDIS_REST_URL = https://xxxx.upstash.io
+   UPSTASH_REDIS_REST_TOKEN = AXxxxxxxxx...
+   ```
+
+4. **Redeploy** aplikasi (Deployments → Redeploy) agar env baru terbaca.
+5. Buka dashboard admin — banner hijau **"Penyimpanan permanen aktif"** berarti berhasil. ✅
+
+> Alternatif: bisa juga pakai **Vercel Marketplace → Storage → KV (Upstash)**, cukup klik "Connect" — env `KV_REST_API_URL` + `KV_REST_API_TOKEN` akan terisi otomatis dan langsung dikenali aplikasi ini.
+
+> Data awal di folder `data/` (konten yang sudah diisi admin secara lokal) otomatis di-*seed* ke Redis saat pertama kali dijalankan. Setelah itu semua perubahan tersimpan di Redis — tidak perlu lagi edit file atau push ulang repo.
+
+### Jalankan lokal tanpa Redis
+
+Tanpa env Redis, aplikasi otomatis fallback ke file JSON di `data/` (mode lama) — cocok untuk development.
 
 ## Kustomisasi
 

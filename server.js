@@ -69,16 +69,16 @@ const uploadMusic = multer({
   },
 });
 
-// ---------- Sesi admin sederhana ----------
-const sessions = new Map(); // token -> expiry timestamp
-
-function isAdmin(req) {
+// ---------- Sesi admin ----------
+// Sesi disimpan di Redis (permanen) lewat lib/store — login tidak hilang
+// saat instance serverless di Vercel berganti (cold start).
+async function isAdmin(req) {
   const token = req.cookies && req.cookies.admin_token;
   if (!token) return false;
-  const expiry = sessions.get(token);
+  const expiry = await store.getSession(token);
   if (!expiry) return false;
   if (Date.now() > expiry) {
-    sessions.delete(token);
+    await store.deleteSession(token);
     return false;
   }
   return true;
@@ -100,8 +100,8 @@ app.use((req, res, next) => {
   next();
 });
 
-function requireAdmin(req, res, next) {
-  if (!isAdmin(req)) return res.status(401).json({ error: 'Tidak diizinkan. Silakan login dahulu.' });
+async function requireAdmin(req, res, next) {
+  if (!(await isAdmin(req))) return res.status(401).json({ error: 'Tidak diizinkan. Silakan login dahulu.' });
   next();
 }
 
@@ -145,7 +145,6 @@ app.post('/api/rsvp', async (req, res) => {
   if (!['hadir', 'tidak-hadir'].includes(attendance)) {
     return res.status(400).json({ error: 'Status kehadiran tidak valid' });
   }
-  const rsvps = await store.readRsvps();
   const entry = {
     id: crypto.randomUUID(),
     name: name.trim().slice(0, 100),
@@ -154,8 +153,8 @@ app.post('/api/rsvp', async (req, res) => {
     message: (message || '').trim().slice(0, 500),
     createdAt: new Date().toISOString(),
   };
-  rsvps.push(entry);
-  await store.writeRsvps(rsvps);
+  // Append atomik: aman dari race condition antar instance serverless
+  await store.appendItem('rsvps.json', entry);
   res.status(201).json(entry);
 });
 
@@ -168,7 +167,7 @@ app.delete('/api/rsvps/:id', requireAdmin, async (req, res) => {
 // ---------- API: Ucapan / Buku Tamu ----------
 app.get('/api/wishes', async (req, res) => {
   const all = await store.readWishes();
-  if (isAdmin(req)) return res.json(all);
+  if (await isAdmin(req)) return res.json(all);
   const settings = await store.readSettings();
   const approved = settings.wishes.autoApprove ? all : all.filter((w) => w.approved);
   res.json(approved.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
@@ -191,8 +190,8 @@ app.post('/api/wishes', async (req, res) => {
     approved: !!settings.wishes.autoApprove,
     createdAt: new Date().toISOString(),
   };
-  wishes.push(entry);
-  await store.writeWishes(wishes);
+  // Append atomik: aman dari race condition antar instance serverless
+  await store.appendItem('wishes.json', entry);
   res.status(201).json(entry);
 });
 
@@ -276,16 +275,21 @@ app.get('/api/qrcode', async (req, res) => {
 
 // ---------- API: Versi server ----------
 // Dipakai admin untuk mendeteksi apakah server perlu di-restart agar fitur baru aktif,
-// dan apakah penyimpanan bersifat permanen (di Vercel serverless filesystem read-only).
-app.get('/api/version', (req, res) => {
-  res.json({ version: 2, persistent: store.isPersistent() });
+// dan apakah penyimpanan bersifat permanen (Redis) atau sementara (file lokal).
+app.get('/api/version', async (req, res) => {
+  let storageOk = store.isPersistent();
+  if (storageOk) {
+    // Verifikasi Redis benar-benar bisa dibaca/tulis
+    storageOk = await store.probe();
+  }
+  res.json({ version: 3, persistent: storageOk });
 });
 
 // ---------- API: Admin auth ----------
 // Konfigurasi admin user (bisa diubah via env ADMIN_USERNAME dan ADMIN_PASSWORD)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 
-app.post('/api/admin/login', (req, res) => {
+app.post('/api/admin/login', async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ error: 'Username dan password wajib diisi' });
@@ -294,20 +298,20 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(401).json({ error: 'Username atau password salah' });
   }
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, Date.now() + 24 * 60 * 60 * 1000); // 24 jam
+  await store.createSession(token, Date.now() + 24 * 60 * 60 * 1000); // 24 jam, tersimpan di Redis
   res.cookie('admin_token', token, { httpOnly: true, sameSite: 'lax', maxAge: 24 * 60 * 60 * 1000 });
   res.json({ ok: true });
 });
 
-app.post('/api/admin/logout', (req, res) => {
+app.post('/api/admin/logout', async (req, res) => {
   const token = req.cookies && req.cookies.admin_token;
-  if (token) sessions.delete(token);
+  if (token) await store.deleteSession(token);
   res.clearCookie('admin_token');
   res.json({ ok: true });
 });
 
-app.get('/api/admin/me', (req, res) => {
-  res.json({ admin: isAdmin(req) });
+app.get('/api/admin/me', async (req, res) => {
+  res.json({ admin: await isAdmin(req) });
 });
 
 // ---------- Ringkasan untuk dashboard ----------

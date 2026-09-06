@@ -194,6 +194,24 @@ body {
   font-size: 0.8rem;
 }
 
+.ok-banner {
+  background: #e7f6ec;
+  border: 1px solid #9fd8b0;
+  border-radius: 12px;
+  padding: 0.9rem 1.2rem;
+  font-size: 0.85rem;
+  color: #1d6b38;
+  line-height: 1.7;
+  margin-bottom: 1.4rem;
+}
+
+.ok-banner code {
+  background: rgba(0, 0, 0, 0.07);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
 /* ============ REKENING BANK & IMPORT DATA TAMU ============ */
 .bank-list {
   display: flex;

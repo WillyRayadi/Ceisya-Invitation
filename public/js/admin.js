@@ -222,12 +222,16 @@
   // ---------- Deteksi versi server ----------
   // Server lama (belum di-restart) tidak punya endpoint ini / versi lama,
   // sehingga tema, upload musik, dan fitur baru tidak akan tersimpan.
-  const SERVER_VERSION = 2;
+  const SERVER_VERSION = 3;
   async function checkServerVersion() {
     try {
       const v = await api('/api/version');
       if (v.version !== SERVER_VERSION) $('#restartWarn').classList.remove('hidden');
-      if (v.persistent === false) $('#storageWarn').classList.remove('hidden');
+      if (v.persistent === true) {
+        $('#storageOk').classList.remove('hidden');
+      } else {
+        $('#storageWarn').classList.remove('hidden');
+      }
     } catch (err) {
       $('#restartWarn').classList.remove('hidden');
     }
